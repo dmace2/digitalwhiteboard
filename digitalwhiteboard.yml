@@ -1,0 +1,5 @@
+name: allisonwake
+channels:
+  - https://conda.anaconda.org/c4aarch64
+  - https://conda.anaconda.org/conda-forge
+prefix: /home/allisonai/archiconda3/envs/allisonwake
