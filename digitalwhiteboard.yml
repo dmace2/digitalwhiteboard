@@ -1,4 +1,4 @@
-name: allisonwake
+name: digitalwhiteboard
 channels:
   - https://conda.anaconda.org/c4aarch64
   - https://conda.anaconda.org/conda-forge
