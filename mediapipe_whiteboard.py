@@ -8,6 +8,7 @@ import cv2
 import copy
 import numpy as np
 import mediapipe as mp
+from spaghetti import finger_angles
 
 class Whiteboard:
     
@@ -47,6 +48,7 @@ class Whiteboard:
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 if results.multi_hand_landmarks:
                     for hand_landmarks in results.multi_hand_landmarks:
+                        print(finger_angles(hand_landmarks))
                         self.mp_drawing.draw_landmarks(
                             image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 

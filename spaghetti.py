@@ -83,21 +83,21 @@ def finger_angles(landmarks):
 
     rngang = np.arccos(np.dot(vec1, vec2))
 
-    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_TIP].x
-    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_TIP].y
-    z = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_TIP].z
+    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x
+    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y
+    z = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].z
 
     ftip = np.array([x, y, z])
 
-    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_MCP].x
-    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_MCP].y
-    z = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_MCP].z
+    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].x
+    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].y
+    z = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].z
 
     mcp = np.array([x, y, z])
 
-    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_PIP].x
-    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_PIP].y
-    z = landmarks.landmark[mp_hands.HandLandmark.PINKY_FINGER_PIP].z
+    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].x
+    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].y
+    z = landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].z
 
     pip = np.array([x, y, z])
 
