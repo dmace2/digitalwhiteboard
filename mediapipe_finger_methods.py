@@ -1,6 +1,17 @@
 import mediapipe as mp
 import numpy as np
 
+def pointer_position(landmarks):
+    mp_hands = mp.solutions.hands
+
+    x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x
+    y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y
+    z = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z
+
+    ftip = np.array([x, y, z])
+
+    return ftip
+
 
 def finger_angles(landmarks):
     mp_hands = mp.solutions.hands
@@ -81,7 +92,7 @@ def finger_angles(landmarks):
     vec1 = vec1 / np.linalg.norm(vec1)
     vec2 = vec2 / np.linalg.norm(vec2)
 
-    rngang = np.arccos(np.dot(vec1, vec2))
+    ringang = np.arccos(np.dot(vec1, vec2))
 
     x = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x
     y = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y
@@ -107,6 +118,6 @@ def finger_angles(landmarks):
     vec1 = vec1 / np.linalg.norm(vec1)
     vec2 = vec2 / np.linalg.norm(vec2)
 
-    pnkang = np.arccos(np.dot(vec1, vec2))
+    pinkyang = np.arccos(np.dot(vec1, vec2))
 
-    return [indang, midang, rngang, pnkang]
+    return np.array([indang, midang, ringang, pinkyang])
