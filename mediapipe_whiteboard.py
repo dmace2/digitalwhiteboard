@@ -24,6 +24,8 @@ class Whiteboard:
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands
 
+        self.last_action = None
+
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
         prob = (angles < 0.2) * 1.0
@@ -37,35 +39,44 @@ class Whiteboard:
         
         #index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
-            cv2.circle(self.whiteboard, (x,y), radius=7, color=(255,0,0), thickness=-1)
-            
-            self.overlay = copy.deepcopy(self.whiteboard)
+            if self.last_action == "draw":
+                cv2.circle(self.whiteboard, (x,y), radius=7, color=(255,0,0), thickness=-1)
+                self.overlay = copy.deepcopy(self.whiteboard)
+            self.last_action = "draw"
         
         # two fingers detected: INDEX + MIDDLE | action: show pointer
         elif n_fingers == 2 and prob[0] == 1.0 and prob[1] == 1.0:
-            self.overlay = copy.deepcopy(self.whiteboard)
-            cv2.circle(self.overlay, (x,y), radius=5, color=(255,0,0), thickness=2)
+            if self.last_action == "move":
+                self.overlay = copy.deepcopy(self.whiteboard)
+                cv2.circle(self.overlay, (x,y), radius=5, color=(255,0,0), thickness=2)
+            self.last_action = "move"
 
         # five fingers detected | action:  erase 
         elif n_fingers == 4 :
-            cv2.circle(self.whiteboard, (x,y), radius=30, color=(0,0,0), thickness=-1)
-            self.overlay = copy.deepcopy(self.whiteboard)
-            cv2.circle(self.overlay, (x,y), radius=30, color=(255,0,0), thickness=2)
+            if self.last_action == "erase":
+                cv2.circle(self.whiteboard, (x,y), radius=30, color=(0,0,0), thickness=-1)
+                self.overlay = copy.deepcopy(self.whiteboard)
+                cv2.circle(self.overlay, (x,y), radius=30, color=(255,0,0), thickness=2)
+            self.last_action = "erase"
 #
         # two fingers detected: INDEX + PINKY | action: clean whiteboard
         elif n_fingers == 2 and prob[0] == 1.0 and prob[3] == 1.0:
-            self.whiteboard = np.zeros(self.frame_shape, np.uint8)
-            self.overlay = copy.deepcopy(self.whiteboard)
+            if self.last_action == "clear":
+                self.whiteboard = np.zeros(self.frame_shape, np.uint8)
+                self.overlay = copy.deepcopy(self.whiteboard)
+            self.last_action = "clear"
 #        
         # three fingers detected: INDEX + MIDDLE + RING | action: save whiteboard
         elif n_fingers == 3 and prob[0] == 1.0 and prob[1] == 1.0 and prob[2] == 1.0:
-            cv2.imwrite('saved/whiteboard.jpg', self.whiteboard)
-            print('-- whiteboard.jpg saved! ')
-            self.info_whiteboard = copy.deepcopy(self.whiteboard)
+            if self.last_action == "save":
+                cv2.imwrite('saved/whiteboard.jpg', self.whiteboard)
+                print('-- whiteboard.jpg saved! ')
+                self.info_whiteboard = copy.deepcopy(self.whiteboard)
+            self.last_action = "save"
 
 
 
-    def run(self):
+    def run(self, flip=False):
         with self.mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
             while self.cam.isOpened():
                 success, image = self.cam.read()
@@ -73,9 +84,12 @@ class Whiteboard:
                     print("Ignoring empty camera frame.")
                     # If loading a video, use 'break' instead of 'continue'.
                     continue
-                # Flip the image horizontally for a later selfie-view display, and convert
-                # the BGR image to RGB.
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                if flip:
+                    # Flip the image horizontally for a later selfie-view display, and convert
+                    # the BGR image to RGB.
+                    image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+                else:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 # To improve performance, optionally mark the image as not writeable to
                 # pass by reference.
                 image.flags.writeable = False
