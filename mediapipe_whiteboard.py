@@ -11,6 +11,7 @@ import mediapipe as mp
 from mediapipe_finger_methods import finger_angles, pointer_position
 from LRUCache import LRUCache
 from tkinter import *
+
 from PIL import ImageTk, Image
 import sys
 
@@ -20,9 +21,12 @@ class Whiteboard:
     def __init__(self, max_frame_buffer_len=7, video_capture=2, background_image=None):
         self.tk = Tk()
         self.tk.resizable(False, False)
-        self.canvas = Canvas(self.tk, width=1500, height=750)
+        title = Label(self.tk, text="AI Whiteboard!", font=("Arial", 25))
+        title.pack()
+        self.canvas = Canvas(self.tk, width=1500, height=500)
+        self.canvas.pack(side=TOP, pady=20)
+
         self.add_ui_elements()
-        self.canvas.pack()
 
         self.cam = cv2.VideoCapture(video_capture)
         self.frame_shape = self.cam.read()[-1].shape
@@ -57,24 +61,41 @@ class Whiteboard:
         button.pack(side=LEFT)
 
         button = Button(buttonCanvas, text="Orange", bg='orange', command=lambda:self.update_draw_color('Orange'))
-        button.pack(side=LEFT)
+        button.pack(side=LEFT, padx=2)
 
         button = Button(buttonCanvas, text="Yellow", bg='yellow', command=lambda:self.update_draw_color('Yellow'))
-        button.pack(side=LEFT)
+        button.pack(side=LEFT, padx=2)
 
         button = Button(buttonCanvas, text="Green", bg='green', command=lambda:self.update_draw_color('Green'))
-        button.pack(side=LEFT)
+        button.pack(side=LEFT, padx=2)
 
         button = Button(buttonCanvas, text="Blue", bg='blue', command=lambda:self.update_draw_color('Blue'))
-        button.pack(side=LEFT)
+        button.pack(side=LEFT, padx=2)
 
         button = Button(buttonCanvas, text="Purple", bg='purple', command=lambda:self.update_draw_color('Purple'))
-        button.pack(side=LEFT)
+        button.pack(side=LEFT, padx=2)
 
         button = Button(buttonCanvas, text="White", bg='white', command=lambda:self.update_draw_color('White'))
-        button.pack(side=LEFT)
+        button.pack(side=LEFT, padx=2)
 
-        buttonCanvas.pack()
+        buttonCanvas.pack(side=TOP, pady=20)
+
+        drawCanvas = Canvas(self.tk)
+        label = Label(drawCanvas, text="Draw Radius")
+        size_up = Button(drawCanvas, text="+", command=lambda: self.update_draw_radius(True))
+        size_down = Button(drawCanvas, text="-", command=lambda: self.update_draw_radius(False))
+        
+        size_up.pack(side=LEFT, padx=2)
+        label.pack(side=LEFT, padx=2)
+        size_down.pack(side=LEFT, padx=2)
+        drawCanvas.pack(side=TOP, pady=20)
+
+    def update_draw_radius(self, increase):
+        if increase and self.draw_radius < 20:
+            self.draw_radius += 2
+        elif not increase and self.draw_radius - 2 > 0:
+            self.draw_radius -= 2
+        
 
     def update_draw_color(self, color):
         color_dict = {
@@ -118,7 +139,7 @@ class Whiteboard:
         elif n_fingers == 2 and prob[0] == 1.0 and prob[1] == 1.0:
             if self.action_cache.cache_equal("move"):
                 self.overlay = copy.deepcopy(self.whiteboard)
-                cv2.circle(self.overlay, (x, y), radius=5, color=self.draw_color, thickness=2)
+                cv2.circle(self.overlay, (x, y), radius=self.draw_radius, color=self.draw_color, thickness=2)
             self.action_cache.add("move")
 
         # five fingers detected | action:  erase 
@@ -180,12 +201,12 @@ class Whiteboard:
                 # cv2.imshow('MediaPipe Hands', image)
                 video = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
                 videotk = ImageTk.PhotoImage(video)
-                self.canvas.create_image((25, 250), image=videotk, anchor=NW)
+                self.canvas.create_image((25, 0), image=videotk, anchor=NW)
 
                 # cv2.imshow('Whiteboard', self.overlay)
                 whiteboard = Image.fromarray(self.overlay.astype(np.uint8))
                 wbtk = ImageTk.PhotoImage(whiteboard)
-                self.canvas.create_image((825, 250), image=wbtk, anchor = NW)
+                self.canvas.create_image((825, 0), image=wbtk, anchor = NW)
 
                 if cv2.waitKey(5) & 0xFF == 27: #if need to break
                     break
@@ -200,4 +221,4 @@ if __name__ == '__main__':
     path = None
     if len(sys.argv) > 1:
         path = sys.argv[1]
-    white = Whiteboard(5, background_image=path)
+    white = Whiteboard(video_capture=3, max_frame_buffer_len=5, background_image=path)
