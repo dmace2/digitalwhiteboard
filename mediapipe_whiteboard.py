@@ -16,23 +16,10 @@ from PIL import ImageTk, Image
 
 class Whiteboard:
     
-    def __init__(self, max_frame_buffer_len=5, video_capture=2):
+    def __init__(self, max_frame_buffer_len=7, video_capture=2):
         self.tk = Tk()
         self.tk.resizable(False, False)
         self.canvas = Canvas(self.tk, width=1500, height=750)
-        self.color_dict = {
-            'Red': (0, 0, 255),
-            'Orange': (0, 127, 255),
-            'Yellow': (0, 255, 255),
-            'Green': (0, 255, 0),
-            'Blue': (255, 0 , 0),
-            'Purple': (211, 0, 148),
-            'White': (255, 255, 255)
-        }
-        
-        self.draw_color = (255, 255, 255)
-
-
         self.add_color_buttons()
         self.canvas.pack()
 
@@ -41,6 +28,7 @@ class Whiteboard:
         self.cam = cv2.VideoCapture(video_capture)
         self.frame_shape = self.cam.read()[-1].shape
 
+        self.draw_color = (255, 255, 255)
 
         self.whiteboard = np.zeros(self.frame_shape)
         self.overlay = copy.deepcopy(self.whiteboard)
@@ -58,15 +46,41 @@ class Whiteboard:
 
     def add_color_buttons(self):
         buttonCanvas = Canvas(self.tk)
+        
+        button = Button(buttonCanvas, text="Red", bg='red', command=lambda:self.update_draw_color('Red'))
+        button.pack(side=LEFT)
 
-        for key in self.color_dict.keys():
-            button = Button(buttonCanvas, text=key, bg=key.lower(), command=lambda:self.update_draw_color(key))
-            button.pack(side=LEFT)
+        button = Button(buttonCanvas, text="Orange", bg='orange', command=lambda:self.update_draw_color('Orange'))
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Yellow", bg='yellow', command=lambda:self.update_draw_color('Yellow'))
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Green", bg='green', command=lambda:self.update_draw_color('Green'))
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Blue", bg='blue', command=lambda:self.update_draw_color('Blue'))
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Purple", bg='purple', command=lambda:self.update_draw_color('Purple'))
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="White", bg='white', command=lambda:self.update_draw_color('White'))
+        button.pack(side=LEFT)
 
         buttonCanvas.pack()
 
     def update_draw_color(self, color):
-        self.draw_color = self.color_dict[color]
+        color_dict = {
+            'Red': (255, 0, 0),
+            'Green': (0, 255, 0),
+            'Blue': (0, 0 , 255),
+            'Orange': (255, 127, 0),
+            'Yellow': (255, 255, 0),
+            'Purple': (148, 0, 211),
+            'White': (255, 255, 255)
+            }
+        self.draw_color = color_dict[color]
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
