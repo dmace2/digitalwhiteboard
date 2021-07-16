@@ -56,7 +56,7 @@ class Whiteboard:
         button = Button(buttonCanvas, text="Yellow", fg='yellow')
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="Gren", fg='green')
+        button = Button(buttonCanvas, text="Green", fg='green')
         button.pack(side=LEFT)
 
         button = Button(buttonCanvas, text="Blue", fg='blue')
