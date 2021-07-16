@@ -21,14 +21,15 @@ class Whiteboard:
         self.tk = Tk()
         self.tk.resizable(False, False)
         self.canvas = Canvas(self.tk, width=1500, height=750)
-        self.add_color_buttons()
+        self.add_ui_elements()
         self.canvas.pack()
-
-        self.hand = None
 
         self.cam = cv2.VideoCapture(video_capture)
         self.frame_shape = self.cam.read()[-1].shape
         print(self.frame_shape)
+
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_hands = mp.solutions.hands
 
         self.draw_color = (255, 255, 255)
 
@@ -38,22 +39,18 @@ class Whiteboard:
             self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
         else:
             self.bkgd = np.zeros(self.frame_shape)
-        self.whiteboard = copy.deepcopy(self.bkgd)
 
+        self.whiteboard = copy.deepcopy(self.bkgd)
         self.overlay = copy.deepcopy(self.whiteboard)
 
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_hands = mp.solutions.hands
+        self.action_cache = LRUCache(max_frame_buffer_len)
 
-        self.cache = LRUCache(max_frame_buffer_len)
+        self.last_point = [0, 0]
+        self.draw_radius = 5
 
-        # _thread.start_new_thread(self.update_gui, (False,))
+        self.update_gui(False)
 
-        # self.tk.mainloop()
-        while True:
-            self.update_gui(False)
-
-    def add_color_buttons(self):
+    def add_ui_elements(self):
         buttonCanvas = Canvas(self.tk)
         
         button = Button(buttonCanvas, text="Red", bg='red', command=lambda:self.update_draw_color('Red'))
@@ -100,24 +97,31 @@ class Whiteboard:
         x = int(pos[0] * self.frame_shape[1])
         y = int(pos[1] * self.frame_shape[0])
 
-        print(self.cache.cache)        
+        print(self.action_cache.cache)
         # index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
-            if self.cache.cache_equal("draw"):
-                cv2.circle(self.whiteboard, (x,y), radius=7, color=self.draw_color, thickness=-1)
+            if self.action_cache.cache_equal("draw"):
+                point_dist = np.linalg.norm(np.array([x, y])-np.array(self.last_point))
+                print(point_dist)
+                if point_dist < 20:
+                    incremental_steps = 100
+                    incremental_dist = point_dist/incremental_steps
+                    for i in range(incremental_steps):
+                        incremental_point = (np.array([x, y]) + (incremental_dist * (i + 1))).astype(np.uint16)
+                        cv2.circle(self.whiteboard, incremental_point, radius=self.draw_radius, color=self.draw_color, thickness=-1)
                 self.overlay = copy.deepcopy(self.whiteboard)
-            self.cache.add("draw")
+            self.action_cache.add("draw")
         
         # two fingers detected: INDEX + MIDDLE | action: show pointer
         elif n_fingers == 2 and prob[0] == 1.0 and prob[1] == 1.0:
-            if self.cache.cache_equal("move"):
+            if self.action_cache.cache_equal("move"):
                 self.overlay = copy.deepcopy(self.whiteboard)
                 cv2.circle(self.overlay, (x, y), radius=5, color=self.draw_color, thickness=2)
-            self.cache.add("move")
+            self.action_cache.add("move")
 
         # five fingers detected | action:  erase 
         elif n_fingers == 4 :
-            if self.cache.cache_equal("erase"):
+            if self.action_cache.cache_equal("erase"):
                 eraser = np.ones(self.frame_shape, dtype=np.uint8) * 255
                 cv2.circle(eraser, (x, y), radius=30, color=(0, 0, 0), thickness=-1)
                 and_whiteboard = cv2.bitwise_and(self.whiteboard, eraser)
@@ -125,22 +129,23 @@ class Whiteboard:
                 self.whiteboard = cv2.add(and_whiteboard, and_bkgd)
                 self.overlay = copy.deepcopy(self.whiteboard)
                 cv2.circle(self.overlay, (x, y), radius=30, color=(255, 255, 255), thickness=2)
-            self.cache.add("erase")
+            self.action_cache.add("erase")
 #
         # two fingers detected: INDEX + PINKY | action: clean whiteboard
         elif n_fingers == 2 and prob[0] == 1.0 and prob[3] == 1.0:
-            if self.cache.cache_equal("clear"):
+            if self.action_cache.cache_equal("clear"):
                 self.whiteboard = copy.deepcopy(self.bkgd)
                 self.overlay = copy.deepcopy(self.whiteboard)
-            self.cache.add("clear")
+            self.action_cache.add("clear")
 #        
         # three fingers detected: INDEX + MIDDLE + RING | action: save whiteboard
         elif n_fingers == 3 and prob[0] == 1.0 and prob[1] == 1.0 and prob[2] == 1.0:
-            if self.cache.cache_equal("save"):
+            if self.action_cache.cache_equal("save"):
                 cv2.imwrite('saved/whiteboard.jpg', cv2.cvtColor(self.whiteboard, cv2.COLOR_RGB2BGR))
                 print('-- whiteboard.jpg saved! ')
                 self.overlay = copy.deepcopy(self.whiteboard)
-            self.cache.add("save")
+            self.action_cache.add("save")
+        self.last_point = [x, y]
 
     def update_gui(self, flip=False):
         with self.mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, max_num_hands = 1) as hands:
