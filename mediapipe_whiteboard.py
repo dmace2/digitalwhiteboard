@@ -38,7 +38,7 @@ class Whiteboard:
             self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
             self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
         else:
-            self.bkgd = np.zeros(self.frame_shape)
+            self.bkgd = np.zeros(self.frame_shape).astype(np.uint8)
 
         self.whiteboard = copy.deepcopy(self.bkgd)
         self.overlay = copy.deepcopy(self.whiteboard)
@@ -101,13 +101,15 @@ class Whiteboard:
         # index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
             if self.action_cache.cache_equal("draw"):
-                point_dist = np.linalg.norm(np.array([x, y])-np.array(self.last_point))
+                diff = np.array([x, y])-np.array(self.last_point)
+                point_dist = np.linalg.norm(diff)
                 print(point_dist)
                 if point_dist < 20:
+                    slope = diff[1]/diff[0]
                     incremental_steps = 100
-                    incremental_dist = point_dist/incremental_steps
+                    incremental_dist = diff/incremental_steps
                     for i in range(incremental_steps):
-                        incremental_point = (np.array([x, y]) + (incremental_dist * (i + 1))).astype(np.uint16)
+                        incremental_point = (np.array(self.last_point) + (incremental_dist * (i + 1))).astype(np.uint16)
                         cv2.circle(self.whiteboard, incremental_point, radius=self.draw_radius, color=self.draw_color, thickness=-1)
                 self.overlay = copy.deepcopy(self.whiteboard)
             self.action_cache.add("draw")
