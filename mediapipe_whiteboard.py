@@ -9,10 +9,11 @@ import copy
 import numpy as np
 import mediapipe as mp
 from mediapipe_finger_methods import finger_angles, pointer_position
+from LRUCache import LRUCache
 
 class Whiteboard:
     
-    def __init__(self):
+    def __init__(self, max_frame_buffer_len = 7):
         self.hand = None
 
         self.cam = cv2.VideoCapture(2)
@@ -24,7 +25,7 @@ class Whiteboard:
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands
 
-        self.last_action = None
+        self.cache = LRUCache(max_frame_buffer_len)
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
@@ -36,48 +37,48 @@ class Whiteboard:
         x = int(pos[0] * self.frame_shape[1])
         y = int(pos[1] * self.frame_shape[0])
 
-        
+        print(self.cache.cache)        
         #index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
-            if self.last_action == "draw":
+            if self.cache.cache_equal("draw"):
                 cv2.circle(self.whiteboard, (x,y), radius=7, color=(255,0,0), thickness=-1)
                 self.overlay = copy.deepcopy(self.whiteboard)
-            self.last_action = "draw"
+            self.cache.add("draw")
         
         # two fingers detected: INDEX + MIDDLE | action: show pointer
         elif n_fingers == 2 and prob[0] == 1.0 and prob[1] == 1.0:
-            if self.last_action == "move":
+            if self.cache.cache_equal("move"):
                 self.overlay = copy.deepcopy(self.whiteboard)
                 cv2.circle(self.overlay, (x,y), radius=5, color=(255,0,0), thickness=2)
-            self.last_action = "move"
+            self.cache.add("move")
 
         # five fingers detected | action:  erase 
         elif n_fingers == 4 :
-            if self.last_action == "erase":
+            if self.cache.cache_equal("erase"):
                 cv2.circle(self.whiteboard, (x,y), radius=30, color=(0,0,0), thickness=-1)
                 self.overlay = copy.deepcopy(self.whiteboard)
                 cv2.circle(self.overlay, (x,y), radius=30, color=(255,0,0), thickness=2)
-            self.last_action = "erase"
+            self.cache.add("erase")
 #
         # two fingers detected: INDEX + PINKY | action: clean whiteboard
         elif n_fingers == 2 and prob[0] == 1.0 and prob[3] == 1.0:
-            if self.last_action == "clear":
+            if self.cache.cache_equal("clear"):
                 self.whiteboard = np.zeros(self.frame_shape, np.uint8)
                 self.overlay = copy.deepcopy(self.whiteboard)
-            self.last_action = "clear"
+            self.cache.add("clear")
 #        
         # three fingers detected: INDEX + MIDDLE + RING | action: save whiteboard
         elif n_fingers == 3 and prob[0] == 1.0 and prob[1] == 1.0 and prob[2] == 1.0:
-            if self.last_action == "save":
+            if self.cache.cache_equal("save"):
                 cv2.imwrite('saved/whiteboard.jpg', self.whiteboard)
                 print('-- whiteboard.jpg saved! ')
                 self.info_whiteboard = copy.deepcopy(self.whiteboard)
-            self.last_action = "save"
+            self.cache.add("save")
 
 
 
     def run(self, flip=False):
-        with self.mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+        with self.mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5, max_num_hands = 1) as hands:
             while self.cam.isOpened():
                 success, image = self.cam.read()
                 if not success:
