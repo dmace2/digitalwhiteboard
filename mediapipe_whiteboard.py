@@ -30,6 +30,8 @@ class Whiteboard:
         self.cam = cv2.VideoCapture(video_capture)
         self.frame_shape = self.cam.read()[-1].shape
 
+        self.draw_color = (255, 255, 255)
+
         self.whiteboard = np.zeros(self.frame_shape)
         self.overlay = copy.deepcopy(self.whiteboard)
 
@@ -47,30 +49,40 @@ class Whiteboard:
     def add_color_buttons(self):
         buttonCanvas = Canvas(self.tk)
         
-        button = Button(buttonCanvas, text="Red", fg='red')
+        button = Button(buttonCanvas, text="Red", bg='red', command=lambda:self.update_draw_color('Red'))
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="Orange", fg='orange')
+        button = Button(buttonCanvas, text="Orange", bg='orange', command=lambda:self.update_draw_color('Orange'))
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="Yellow", fg='yellow')
+        button = Button(buttonCanvas, text="Yellow", bg='yellow', command=lambda:self.update_draw_color('Yellow'))
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="Green", fg='green')
+        button = Button(buttonCanvas, text="Green", bg='green', command=lambda:self.update_draw_color('Green'))
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="Blue", fg='blue')
+        button = Button(buttonCanvas, text="Blue", bg='blue', command=lambda:self.update_draw_color('Blue'))
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="Purple", fg='purple')
+        button = Button(buttonCanvas, text="Purple", bg='purple', command=lambda:self.update_draw_color('Purple'))
         button.pack(side=LEFT)
 
-        button = Button(buttonCanvas, text="White", fg='white')
+        button = Button(buttonCanvas, text="White", bg='white', command=lambda:self.update_draw_color('White'))
         button.pack(side=LEFT)
 
         buttonCanvas.pack()
 
-
+    def update_draw_color(self, color):
+        color_dict = {
+            'Red': (0, 0, 255),
+            'Green': (0, 255, 0),
+            'Blue': (255, 0 , 0),
+            'Orange': (0, 127, 255),
+            'Yellow': (0, 255, 255),
+            'Purple': (211, 0, 148),
+            'White': (255, 255, 255)
+            }
+        self.draw_color = color_dict[color]
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
@@ -85,7 +97,7 @@ class Whiteboard:
         # index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
             if self.cache.cache_equal("draw"):
-                cv2.circle(self.whiteboard, (x,y), radius=7, color=(255, 255, 255), thickness=-1)
+                cv2.circle(self.whiteboard, (x,y), radius=7, color=self.draw_color, thickness=-1)
                 self.overlay = copy.deepcopy(self.whiteboard)
             self.cache.add("draw")
         
