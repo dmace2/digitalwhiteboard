@@ -12,11 +12,12 @@ from mediapipe_finger_methods import finger_angles, pointer_position
 from LRUCache import LRUCache
 from tkinter import *
 from PIL import ImageTk, Image
+import sys
 
 
 class Whiteboard:
     
-    def __init__(self, max_frame_buffer_len=7, video_capture=2):
+    def __init__(self, max_frame_buffer_len=7, video_capture=2, background_image=None):
         self.tk = Tk()
         self.tk.resizable(False, False)
         self.canvas = Canvas(self.tk, width=1500, height=750)
@@ -27,10 +28,18 @@ class Whiteboard:
 
         self.cam = cv2.VideoCapture(video_capture)
         self.frame_shape = self.cam.read()[-1].shape
+        print(self.frame_shape)
 
         self.draw_color = (255, 255, 255)
 
-        self.whiteboard = np.zeros(self.frame_shape)
+        if background_image:
+            self.bkgd = cv2.imread(background_image)
+            self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
+            self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
+        else:
+            self.bkgd = np.zeros(self.frame_shape)
+        self.whiteboard = copy.deepcopy(self.bkgd)
+
         self.overlay = copy.deepcopy(self.whiteboard)
 
         self.mp_drawing = mp.solutions.drawing_utils
@@ -84,7 +93,7 @@ class Whiteboard:
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
-        prob = (angles < 0.2) * 1.0
+        prob = (angles < 0.15) * 1.0
         n_fingers = np.count_nonzero(prob)
 
         pos = pointer_position(landmarks)        
@@ -103,13 +112,17 @@ class Whiteboard:
         elif n_fingers == 2 and prob[0] == 1.0 and prob[1] == 1.0:
             if self.cache.cache_equal("move"):
                 self.overlay = copy.deepcopy(self.whiteboard)
-                cv2.circle(self.overlay, (x, y), radius=5, color=(255, 255, 255), thickness=2)
+                cv2.circle(self.overlay, (x, y), radius=5, color=self.draw_color, thickness=2)
             self.cache.add("move")
 
         # five fingers detected | action:  erase 
         elif n_fingers == 4 :
             if self.cache.cache_equal("erase"):
-                cv2.circle(self.whiteboard, (x, y), radius=30, color=(0, 0, 0), thickness=-1)
+                eraser = np.ones(self.frame_shape, dtype=np.uint8) * 255
+                cv2.circle(eraser, (x, y), radius=30, color=(0, 0, 0), thickness=-1)
+                and_whiteboard = cv2.bitwise_and(self.whiteboard, eraser)
+                and_bkgd = cv2.bitwise_and(self.bkgd, cv2.bitwise_not(eraser))
+                self.whiteboard = cv2.add(and_whiteboard, and_bkgd)
                 self.overlay = copy.deepcopy(self.whiteboard)
                 cv2.circle(self.overlay, (x, y), radius=30, color=(255, 255, 255), thickness=2)
             self.cache.add("erase")
@@ -117,14 +130,14 @@ class Whiteboard:
         # two fingers detected: INDEX + PINKY | action: clean whiteboard
         elif n_fingers == 2 and prob[0] == 1.0 and prob[3] == 1.0:
             if self.cache.cache_equal("clear"):
-                self.whiteboard = np.zeros(self.frame_shape, np.uint8)
+                self.whiteboard = copy.deepcopy(self.bkgd)
                 self.overlay = copy.deepcopy(self.whiteboard)
             self.cache.add("clear")
 #        
         # three fingers detected: INDEX + MIDDLE + RING | action: save whiteboard
         elif n_fingers == 3 and prob[0] == 1.0 and prob[1] == 1.0 and prob[2] == 1.0:
             if self.cache.cache_equal("save"):
-                cv2.imwrite('saved/whiteboard.jpg', self.whiteboard)
+                cv2.imwrite('saved/whiteboard.jpg', cv2.cvtColor(self.whiteboard, cv2.COLOR_RGB2BGR))
                 print('-- whiteboard.jpg saved! ')
                 self.overlay = copy.deepcopy(self.whiteboard)
             self.cache.add("save")
@@ -176,8 +189,8 @@ class Whiteboard:
             cv2.destroyAllWindows()
 
 
-
-
 if __name__ == '__main__':
-    white = Whiteboard(5)
-
+    path = None
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+    white = Whiteboard(5, background_image=path)

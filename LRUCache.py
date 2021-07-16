@@ -13,5 +13,5 @@ class LRUCache:
         
 
     def cache_equal(self, action):
-        result = self.cache.count(action) == self.max_elems
+        result = self.cache.count(action) >= self.max_elems/2
         return result
