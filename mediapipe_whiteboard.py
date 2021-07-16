@@ -15,7 +15,7 @@ class Whiteboard:
     def __init__(self):
         self.hand = None
 
-        self.cam = cv2.VideoCapture(0)
+        self.cam = cv2.VideoCapture(2)
         self.frame_shape = self.cam.read()[-1].shape[:2]
 
         self.whiteboard = np.zeros(self.frame_shape)
@@ -31,8 +31,8 @@ class Whiteboard:
 
 
         pos = pointer_position(landmarks)        
-        x = int(pos[0] * self.frame_shape[0])
-        y = int(pos[1] * self.frame_shape[1])
+        x = int(pos[0] * self.frame_shape[1])
+        y = int(pos[1] * self.frame_shape[0])
 
         
         #index finger open = draw on whiteboard
@@ -75,7 +75,7 @@ class Whiteboard:
                     continue
                 # Flip the image horizontally for a later selfie-view display, and convert
                 # the BGR image to RGB.
-                image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 # To improve performance, optionally mark the image as not writeable to
                 # pass by reference.
                 image.flags.writeable = False
