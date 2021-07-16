@@ -37,9 +37,11 @@ class Whiteboard:
 
         self.cache = LRUCache(max_frame_buffer_len)
 
-        _thread.start_new_thread(self.update_gui, (False,))
+        # _thread.start_new_thread(self.update_gui, (False,))
 
-        self.tk.mainloop()
+        # self.tk.mainloop()
+        while True:
+            self.update_gui(False)
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
@@ -99,9 +101,9 @@ class Whiteboard:
                 if flip:
                     # Flip the image horizontally for a later selfie-view display, and convert
                     # the BGR image to RGB.
-                    image = cv2.flip(image, 1)
-                # else:
-                #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
+                else:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 # To improve performance, optionally mark the image as not writeable to
                 # pass by reference.
                 image.flags.writeable = False
@@ -117,7 +119,7 @@ class Whiteboard:
                             image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
                 # cv2.imshow('MediaPipe Hands', image)
-                video = Image.fromarray(image)
+                video = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
                 videotk = ImageTk.PhotoImage(video)
                 self.canvas.create_image((25, 250), image=videotk, anchor=NW)
 
@@ -128,6 +130,9 @@ class Whiteboard:
 
                 if cv2.waitKey(5) & 0xFF == 27: #if need to break
                     break
+
+                self.tk.update_idletasks()
+                self.tk.update()
             self.cam.release()
             cv2.destroyAllWindows()
 
