@@ -22,6 +22,7 @@ class Whiteboard:
         self.tk = Tk()
         self.tk.resizable(False, False)
         self.canvas = Canvas(self.tk, width=1500, height=750)
+        self.add_color_buttons()
         self.canvas.pack()
 
         self.hand = None
@@ -42,6 +43,34 @@ class Whiteboard:
         # self.tk.mainloop()
         while True:
             self.update_gui(False)
+
+    def add_color_buttons(self):
+        buttonCanvas = Canvas(self.tk)
+        
+        button = Button(buttonCanvas, text="Red", fg='red')
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Orange", fg='orange')
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Yellow", fg='yellow')
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Gren", fg='green')
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Blue", fg='blue')
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="Purple", fg='purple')
+        button.pack(side=LEFT)
+
+        button = Button(buttonCanvas, text="White", fg='white')
+        button.pack(side=LEFT)
+
+        buttonCanvas.pack()
+
+
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)

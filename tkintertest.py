@@ -1,15 +1,22 @@
 from tkinter import *
 
-master = Tk()
+root = Tk()
+frame = Frame(root)
+frame.pack()
 
-w = Canvas(master, width=200, height=100)
-w.pack()
+bottomframe = Frame(root)
+bottomframe.pack( side = BOTTOM )
 
-# w.create_rectangle(50, 20, 150, 80, fill="#476042")
-# w.create_rectangle(65, 35, 135, 65, fill="yellow")
-# w.create_line(0, 0, 50, 20, fill="#476042", width=3)
-# w.create_line(0, 100, 50, 80, fill="#476042", width=3)
-# w.create_line(150,20, 200, 0, fill="#476042", width=3)
-# w.create_line(150, 80, 200, 100, fill="#476042", width=3)
+redbutton = Button(frame, text="Red", fg="red")
+redbutton.pack( side = LEFT)
 
-mainloop()
+greenbutton = Button(frame, text="green", fg="green")
+greenbutton.pack( side = LEFT )
+
+bluebutton = Button(frame, text="Blue", fg="blue")
+bluebutton.pack( side = LEFT )
+
+blackbutton = Button(bottomframe, text="Black", fg="black")
+blackbutton.pack( side = BOTTOM)
+
+root.mainloop()
