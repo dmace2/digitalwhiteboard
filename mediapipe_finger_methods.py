@@ -8,7 +8,7 @@ def pointer_position(landmarks):
     y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z
 
-    ftip = np.array([x, y, z])
+    ftip = np.array([x, y])
 
     return ftip
 
@@ -20,19 +20,19 @@ def finger_angles(landmarks):
     y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].z
 
-    ftip = np.array([x, y, z])
+    ftip = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
     y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
     z = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].z
 
-    mcp = np.array([x, y, z])
+    mcp = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_PIP].x
     y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_PIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_PIP].z
 
-    pip = np.array([x, y, z])
+    pip = np.array([x, y])
 
     vec1 = ftip - mcp
     vec2 = pip - mcp
@@ -46,19 +46,19 @@ def finger_angles(landmarks):
     y = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].z
 
-    ftip = np.array([x, y, z])
+    ftip = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
     y = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
     z = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].z
 
-    mcp = np.array([x, y, z])
+    mcp = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].x
     y = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_PIP].z
 
-    pip = np.array([x, y, z])
+    pip = np.array([x, y])
 
     vec1 = ftip - mcp
     vec2 = pip - mcp
@@ -72,19 +72,19 @@ def finger_angles(landmarks):
     y = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].z
 
-    ftip = np.array([x, y, z])
+    ftip = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x
     y = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y
     z = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].z
 
-    mcp = np.array([x, y, z])
+    mcp = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_PIP].x
     y = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_PIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_PIP].z
 
-    pip = np.array([x, y, z])
+    pip = np.array([x, y])
 
     vec1 = ftip - mcp
     vec2 = pip - mcp
@@ -98,19 +98,19 @@ def finger_angles(landmarks):
     y = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].z
 
-    ftip = np.array([x, y, z])
+    ftip = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].x
     y = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].y
     z = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].z
 
-    mcp = np.array([x, y, z])
+    mcp = np.array([x, y])
 
     x = landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].x
     y = landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].y
     z = landmarks.landmark[mp_hands.HandLandmark.PINKY_PIP].z
 
-    pip = np.array([x, y, z])
+    pip = np.array([x, y])
 
     vec1 = ftip - mcp
     vec2 = pip - mcp
