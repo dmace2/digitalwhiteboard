@@ -14,7 +14,7 @@ Implemented using Google's MediaPipe hand detection, we have created a digital w
 This whiteboard was designed to allow for any type of background image. Just pass in your image filepath as the first command line argument when running the script.
 
 #### Default Colors
-If you just want a simpler background, pass in one of the default colors (Red, Orange, Yellow, Green, Blue, Purple, White) as the first argument and your colorful background will be created.
+If you just want a simpler background, pass in one of the default colors (Red, Orange, Yellow, Green, Blue, Purple, White, Black) as the first argument and your colorful background will be created.
 
 ## Requirements
 Build your environment from the the included [env.yml](https://github.com/dmace2/digitalwhiteboard/blob/tk_branch/env.yml) Anaconda file. If you cannot install the environment, just work one by one through the pip requirements list until the file runs.
