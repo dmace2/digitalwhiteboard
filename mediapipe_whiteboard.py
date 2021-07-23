@@ -18,7 +18,7 @@ import sys
 
 class Whiteboard:
     
-    def __init__(self, max_frame_buffer_len=7, video_capture=2, background_image=None):
+    def __init__(self, max_frame_buffer_len=7, video_capture=0, background_image=None):
         self.tk = Tk()
         self.tk.resizable(False, False)
         title = Label(self.tk, text="AI Whiteboard!", font=("Arial", 25))
@@ -81,7 +81,7 @@ class Whiteboard:
         buttonCanvas.pack(side=TOP, pady=20)
 
         drawCanvas = Canvas(self.tk)
-        label = Label(drawCanvas, text="Draw Radius")
+        label = Label(drawCanvas, text="Draw Size")
         size_up = Button(drawCanvas, text="+", command=lambda: self.update_draw_radius(True))
         size_down = Button(drawCanvas, text="-", command=lambda: self.update_draw_radius(False))
         
@@ -221,4 +221,4 @@ if __name__ == '__main__':
     path = None
     if len(sys.argv) > 1:
         path = sys.argv[1]
-    white = Whiteboard(video_capture=3, max_frame_buffer_len=5, background_image=path)
+    white = Whiteboard(video_capture=2, max_frame_buffer_len=5, background_image=path)
