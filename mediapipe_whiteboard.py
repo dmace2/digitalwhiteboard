@@ -201,7 +201,7 @@ class Whiteboard:
                 if not success:
                     print("Ignoring empty camera frame.")
                     # If loading a video, use 'break' instead of 'continue'.
-                    continue
+                    break
                 if flip:
                     # Flip the image horizontally for a later selfie-view display, and convert
                     # the BGR image to RGB.
