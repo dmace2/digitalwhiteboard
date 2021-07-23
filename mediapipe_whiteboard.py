@@ -164,9 +164,7 @@ class Whiteboard:
 
                 palmx = int((pinky_knuckle[0] + index_knuckle[0] + wrist[0]) / 3)
                 palmy = int((pinky_knuckle[1] + index_knuckle[1] + wrist[1]) / 3)
-                print("PALM", palmx, palmy)
-
-                print(pinky_knuckle, index_knuckle, wrist)
+            
 
                 cv2.circle(eraser, (palmx, palmy), radius=30, color=(0, 0, 0), thickness=-1)
                 and_whiteboard = cv2.bitwise_and(self.whiteboard, eraser)
@@ -190,6 +188,10 @@ class Whiteboard:
                 print('-- whiteboard.jpg saved! ')
                 self.overlay = copy.deepcopy(self.whiteboard)
             self.action_cache.add("save")
+
+        else:
+            self.overlay = copy.deepcopy(self.whiteboard)
+        
         self.last_point = [x, y]
 
     def update_gui(self, flip=False):
