@@ -9,6 +9,7 @@ import copy
 import numpy as np
 import mediapipe as mp
 from mediapipe_finger_methods import finger_angles, pointer_position
+from mediapipe_finger_methods import *
 from LRUCache import LRUCache
 from tkinter import *
 
@@ -109,16 +110,22 @@ class Whiteboard:
             }
         self.draw_color = color_dict[color]
 
+    def convert_float_to_absolute_pos(self, pos):
+        x = int(pos[0] * self.frame_shape[1])
+        y = int(pos[1] * self.frame_shape[0])
+        return (x,y)
+
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
         prob = (angles < 0.15) * 1.0
         n_fingers = np.count_nonzero(prob)
 
         pos = pointer_position(landmarks)        
-        x = int(pos[0] * self.frame_shape[1])
-        y = int(pos[1] * self.frame_shape[0])
+        # x = int(pos[0] * self.frame_shape[1])
+        # y = int(pos[1] * self.frame_shape[0])
+        x,y = self.convert_float_to_absolute_pos(pos)
 
-        print(self.action_cache.cache)
+        
         # index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
             if self.action_cache.cache_equal("draw"):
@@ -146,12 +153,27 @@ class Whiteboard:
         elif n_fingers == 4 :
             if self.action_cache.cache_equal("erase"):
                 eraser = np.ones(self.frame_shape, dtype=np.uint8) * 255
-                cv2.circle(eraser, (x, y), radius=30, color=(0, 0, 0), thickness=-1)
+
+                pinky_knuckle = get_pinky_joint(landmarks)
+                pinky_knuckle = self.convert_float_to_absolute_pos(pinky_knuckle)
+                index_knuckle = get_index_joint(landmarks)
+                index_knuckle = self.convert_float_to_absolute_pos(index_knuckle)
+                wrist = get_wrist(landmarks)
+                wrist = self.convert_float_to_absolute_pos(wrist)
+
+
+                palmx = int((pinky_knuckle[0] + index_knuckle[0] + wrist[0]) / 3)
+                palmy = int((pinky_knuckle[1] + index_knuckle[1] + wrist[1]) / 3)
+                print("PALM", palmx, palmy)
+
+                print(pinky_knuckle, index_knuckle, wrist)
+
+                cv2.circle(eraser, (palmx, palmy), radius=30, color=(0, 0, 0), thickness=-1)
                 and_whiteboard = cv2.bitwise_and(self.whiteboard, eraser)
                 and_bkgd = cv2.bitwise_and(self.bkgd, cv2.bitwise_not(eraser))
                 self.whiteboard = cv2.add(and_whiteboard, and_bkgd)
                 self.overlay = copy.deepcopy(self.whiteboard)
-                cv2.circle(self.overlay, (x, y), radius=30, color=(255, 255, 255), thickness=2)
+                cv2.circle(self.overlay, (palmx, palmy), radius=30, color=(255, 255, 255), thickness=2)
             self.action_cache.add("erase")
 #
         # two fingers detected: INDEX + PINKY | action: clean whiteboard

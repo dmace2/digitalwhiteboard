@@ -12,6 +12,34 @@ def pointer_position(landmarks):
 
     return ftip
 
+def get_index_joint(landmarks):
+    mp_hands = mp.solutions.hands
+
+    x = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].x
+    y = landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y
+
+    ftip = np.array([x, y])
+    return ftip
+
+def get_pinky_joint(landmarks):
+    mp_hands = mp.solutions.hands
+
+    x = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].x
+    y = landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].y
+
+    ftip = np.array([x, y])
+    return ftip
+
+def get_wrist(landmarks):
+    mp_hands = mp.solutions.hands
+
+    x = landmarks.landmark[mp_hands.HandLandmark.WRIST].x
+    y = landmarks.landmark[mp_hands.HandLandmark.WRIST].y
+
+    ftip = np.array([x, y])
+    return ftip
+
+
 
 def finger_angles(landmarks):
     mp_hands = mp.solutions.hands
