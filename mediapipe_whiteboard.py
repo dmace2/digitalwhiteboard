@@ -23,8 +23,6 @@ class Whiteboard:
     def __init__(self, max_frame_buffer_len=7, video_capture=0, background=None):
         self.tk = Tk()
         self.tk.resizable(False, False)
-        title = Label(self.tk, text="AI Whiteboard!", font=("Arial", 25))
-        title.pack()
 
         self.color_dict = {
             'Red': (255, 0, 0),
@@ -37,14 +35,32 @@ class Whiteboard:
             'Black': (0, 0, 0)
         }
 
+        self.cam = cv2.VideoCapture(video_capture)
+        self.frame_shape = self.cam.read()[-1].shape
+        print(self.frame_shape)
+
+        self.bkgd_color = 'White'
+
+        if background:
+            if os.path.isfile(background):
+                self.bkgd = cv2.imread(background)
+                self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
+                self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
+            elif background in self.color_dict.keys():
+                self.bkgd = cv2.imread(f'backgrounds/{background}.jpg')
+                self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
+                self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
+                self.bkgd_color = background
+        else:
+            self.bkgd = np.ones(self.frame_shape).astype(np.uint8) * 255
+
+        title = Label(self.tk, text=f"AI {self.bkgd_color}board!", font=("Arial", 25))
+        title.pack()
+
         self.canvas = Canvas(self.tk, width=1500, height=500)
         self.canvas.pack(side=TOP, pady=20)
 
         self.add_ui_elements()
-
-        self.cam = cv2.VideoCapture(video_capture)
-        self.frame_shape = self.cam.read()[-1].shape
-        print(self.frame_shape)
 
         self.mp_drawing = mp.solutions.drawing_utils
         self.mp_hands = mp.solutions.hands
@@ -180,7 +196,7 @@ class Whiteboard:
                 and_bkgd = cv2.bitwise_and(self.bkgd, cv2.bitwise_not(eraser))
                 self.whiteboard = cv2.add(and_whiteboard, and_bkgd)
                 self.overlay = copy.deepcopy(self.whiteboard)
-                cv2.circle(self.overlay, (palmx, palmy), radius=30, color=(255, 255, 255), thickness=2)
+                cv2.circle(self.overlay, (palmx, palmy), radius=30, color=self.draw_color, thickness=2)
             self.action_cache.add("erase")
 #
         # two fingers detected: INDEX + PINKY | action: clean whiteboard
