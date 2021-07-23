@@ -19,4 +19,4 @@ If you just want a simpler background, pass in one of the default colors (Red, O
 ## Requirements
 Build your environment from the the included [env.yml](https://github.com/dmace2/digitalwhiteboard/blob/tk_branch/env.yml) Anaconda file. If you cannot install the environment, just work one by one through the pip requirements list until the file runs.
 
-**NOTE:** If you are running this on an nvidia jetson device, you cannot use the YAML file. You must be running Ubuntu 20.14 and using Python 3.8. Additionally, you need to install MediaPipe using the most recent prebuilt wheel located [here](https://github.com/jiuqiant/mediapipe_python_aarch64).
+**NOTE:** If you are running this on an nvidia jetson device, you cannot use the YAML file. You must be running Ubuntu 20.04 and using Python 3.8. Additionally, you need to install MediaPipe using the most recent prebuilt wheel located [here](https://github.com/jiuqiant/mediapipe_python_aarch64).
