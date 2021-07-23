@@ -6,6 +6,7 @@ Created on Fri Jul  9 10:20:33 2021
 """
 import cv2
 import copy
+import os
 import numpy as np
 import mediapipe as mp
 from mediapipe_finger_methods import finger_angles, pointer_position
@@ -19,11 +20,23 @@ import sys
 
 class Whiteboard:
     
-    def __init__(self, max_frame_buffer_len=7, video_capture=0, background_image=None):
+    def __init__(self, max_frame_buffer_len=7, video_capture=0, background=None):
         self.tk = Tk()
         self.tk.resizable(False, False)
         title = Label(self.tk, text="AI Whiteboard!", font=("Arial", 25))
         title.pack()
+
+        self.color_dict = {
+            'Red': (255, 0, 0),
+            'Green': (0, 255, 0),
+            'Blue': (0, 0, 255),
+            'Orange': (255, 127, 0),
+            'Yellow': (255, 255, 0),
+            'Purple': (148, 0, 211),
+            'White': (255, 255, 255),
+            'Black': (0, 0, 0)
+        }
+
         self.canvas = Canvas(self.tk, width=1500, height=500)
         self.canvas.pack(side=TOP, pady=20)
 
@@ -38,10 +51,15 @@ class Whiteboard:
 
         self.draw_color = (255, 255, 255)
 
-        if background_image:
-            self.bkgd = cv2.imread(background_image)
-            self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
-            self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
+        if background:
+            if os.path.isfile(background):
+                self.bkgd = cv2.imread(background)
+                self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
+                self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
+            elif background in self.color_dict.keys():
+                self.bkgd = cv2.imread(f'backgrounds/{background}.jpg')
+                self.bkgd = cv2.resize(self.bkgd, (self.frame_shape[1], self.frame_shape[0]))
+                self.bkgd = cv2.cvtColor(self.bkgd, cv2.COLOR_BGR2RGB)
         else:
             self.bkgd = np.zeros(self.frame_shape).astype(np.uint8)
 
@@ -79,6 +97,10 @@ class Whiteboard:
         button = Button(buttonCanvas, text="White", bg='white', command=lambda:self.update_draw_color('White'))
         button.pack(side=LEFT, padx=2)
 
+        button = Button(buttonCanvas, text="Black", bg='black', fg='white',
+                        command=lambda: self.update_draw_color('Black'))
+        button.pack(side=LEFT, padx=2)
+
         buttonCanvas.pack(side=TOP, pady=20)
 
         drawCanvas = Canvas(self.tk)
@@ -96,24 +118,14 @@ class Whiteboard:
             self.draw_radius += 2
         elif not increase and self.draw_radius - 2 > 0:
             self.draw_radius -= 2
-        
 
     def update_draw_color(self, color):
-        color_dict = {
-            'Red': (255, 0, 0),
-            'Green': (0, 255, 0),
-            'Blue': (0, 0 , 255),
-            'Orange': (255, 127, 0),
-            'Yellow': (255, 255, 0),
-            'Purple': (148, 0, 211),
-            'White': (255, 255, 255)
-            }
-        self.draw_color = color_dict[color]
+        self.draw_color = self.color_dict[color]
 
     def convert_float_to_absolute_pos(self, pos):
         x = int(pos[0] * self.frame_shape[1])
         y = int(pos[1] * self.frame_shape[0])
-        return (x,y)
+        return x, y
 
     def draw(self, landmarks):
         angles = finger_angles(landmarks)
@@ -123,9 +135,8 @@ class Whiteboard:
         pos = pointer_position(landmarks)        
         # x = int(pos[0] * self.frame_shape[1])
         # y = int(pos[1] * self.frame_shape[0])
-        x,y = self.convert_float_to_absolute_pos(pos)
+        x, y = self.convert_float_to_absolute_pos(pos)
 
-        
         # index finger open = draw on whiteboard
         if n_fingers == 1 and prob[0] == 1:
             if self.action_cache.cache_equal("draw"):
@@ -150,7 +161,7 @@ class Whiteboard:
             self.action_cache.add("move")
 
         # five fingers detected | action:  erase 
-        elif n_fingers == 4 :
+        elif n_fingers == 4:
             if self.action_cache.cache_equal("erase"):
                 eraser = np.ones(self.frame_shape, dtype=np.uint8) * 255
 
@@ -161,10 +172,8 @@ class Whiteboard:
                 wrist = get_wrist(landmarks)
                 wrist = self.convert_float_to_absolute_pos(wrist)
 
-
                 palmx = int((pinky_knuckle[0] + index_knuckle[0] + wrist[0]) / 3)
                 palmy = int((pinky_knuckle[1] + index_knuckle[1] + wrist[1]) / 3)
-            
 
                 cv2.circle(eraser, (palmx, palmy), radius=30, color=(0, 0, 0), thickness=-1)
                 and_whiteboard = cv2.bitwise_and(self.whiteboard, eraser)
@@ -220,7 +229,9 @@ class Whiteboard:
                     for hand_landmarks in results.multi_hand_landmarks:
                         self.draw(hand_landmarks)
                         self.mp_drawing.draw_landmarks(
-                            image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+                            image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS,
+                            landmark_drawing_spec=self.mp_drawing.DrawingSpec(color=tuple(reversed(self.draw_color))),
+                            connection_drawing_spec=self.mp_drawing.DrawingSpec(color=tuple(reversed(self.draw_color))))
 
                 # cv2.imshow('MediaPipe Hands', image)
                 video = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
@@ -242,7 +253,7 @@ class Whiteboard:
 
 
 if __name__ == '__main__':
-    path = None
+    back = None
     if len(sys.argv) > 1:
-        path = sys.argv[1]
-    white = Whiteboard(video_capture=2, max_frame_buffer_len=5, background_image=path)
+        back = sys.argv[1]
+    white = Whiteboard(video_capture=2, max_frame_buffer_len=5, background=back)
