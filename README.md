@@ -1,4 +1,5 @@
 # Digital AI Whiteboard
+[Whiteboard GIF](https://github.com/dmace2/digitalwhiteboard/blob/6b4d85759a770190eedf56cc21f8e6cfb9ea318f/My%20Movie%201.gif)
 Implemented using Google's MediaPipe hand detection, we have created a digital whiteboard! Just draw, erase, save, and clear using hand gestures. And for larger-scale changes, such as background and color change, use our command args and simple UI.
 
 ## Gesture Support
